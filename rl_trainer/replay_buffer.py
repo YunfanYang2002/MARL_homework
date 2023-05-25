@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import copy
+import hashlib
 
 
 class ReplayBuffer:
@@ -25,20 +26,32 @@ class ReplayBuffer:
                        }
         self.episode_len = np.zeros(self.buffer_size)
 
+    def hash_dict(self,dictonary):
+        hash_func=hashlib.md5();
+        string=str(dictonary);
+        hash_func.update(string.encode());
+        val=hash_func.digest();
+        #print('value:',val);
+        val=int.from_bytes(val);
+        
+        val=int(val%(1e9+3));
+        #print('value:',val);
+        return val;
+
     def store_transition(self, episode_step, obs_n, s, avail_a_n, last_onehot_a_n, a_n, r, dw):
         self.buffer['obs_n'][self.episode_num][episode_step] = obs_n
-        self.buffer['s'][self.episode_num][episode_step] = s
+        self.buffer['s'][self.episode_num][episode_step] = self.hash_dict(s)
         self.buffer['avail_a_n'][self.episode_num][episode_step] = avail_a_n
         self.buffer['last_onehot_a_n'][self.episode_num][episode_step + 1] = last_onehot_a_n
         self.buffer['a_n'][self.episode_num][episode_step] = a_n
-        self.buffer['r'][self.episode_num][episode_step] = r
+        self.buffer['r'][self.episode_num][episode_step] = np.sum(r[0:3]);
         self.buffer['dw'][self.episode_num][episode_step] = dw
 
         self.buffer['active'][self.episode_num][episode_step] = 1.0
 
     def store_last_step(self, episode_step, obs_n, s, avail_a_n):
         self.buffer['obs_n'][self.episode_num][episode_step] = obs_n
-        self.buffer['s'][self.episode_num][episode_step] = s
+        self.buffer['s'][self.episode_num][episode_step] = self.hash_dict(s)
         self.buffer['avail_a_n'][self.episode_num][episode_step] = avail_a_n
         self.episode_len[self.episode_num] = episode_step  # Record the length of this episode
         self.episode_num = (self.episode_num + 1) % self.buffer_size

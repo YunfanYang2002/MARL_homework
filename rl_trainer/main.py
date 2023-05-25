@@ -76,6 +76,7 @@ class Runner_QMIX:
                 self.agent_n.train(self.replay_buffer, self.total_steps)  # Training
 
         self.evaluate_policy()
+        print("end");
         #self.env.close()
 
     def evaluate_policy(self, ):
@@ -93,7 +94,7 @@ class Runner_QMIX:
         print("total_steps:{} \t win_rate:{} \t evaluate_reward:{}".format(self.total_steps, win_rate, evaluate_reward))
         self.writer.add_scalar('win_rate_{}'.format(self.env_name), win_rate, global_step=self.total_steps)
         # Save the win rates
-        np.save('./data_train/{}_env_{}_number_{}_seed_{}.npy'.format(self.args.algorithm, self.env_name, self.number, self.seed), np.array(self.win_rates))
+        #np.save('./data_train/{}_env_{}_number_{}_seed_{}.npy'.format(self.args.algorithm, self.env_name, self.number, self.seed), np.array(self.win_rates))
 
     def run_episode_snake(self, evaluate=False):
         win_tag = False
@@ -145,10 +146,12 @@ class Runner_QMIX:
 
         if not evaluate:
             # An episode is over, store obs_n, s and avail_a_n in the last step
-            obs_n = self.env.get_obs()
+            #obs_n = self.env.get_obs()
+            '''obs_n = get_observations(state_to_training, self.ctrl_agent_index, self.obs_dim, self.height, self.width)
             s = self.env.get_state()
             avail_a_n = self.env.get_avail_actions()
-            self.replay_buffer.store_last_step(episode_step + 1, obs_n, s, avail_a_n)
+            self.replay_buffer.store_last_step(episode_step + 1, obs_n, s, avail_a_n)'''
+            pass;
 
         return win_tag, episode_reward, episode_step + 1
 
@@ -164,6 +167,7 @@ if __name__ == '__main__':
     parser.add_argument('--algo', default="ddpg", type=str, help="bicnet/ddpg")
     parser.add_argument('--max_episodes', default=50000, type=int)
     parser.add_argument('--episode_length', default=200, type=int)
+    parser.add_argument('--episode_limit', default=200, type=int)
     parser.add_argument('--output_activation', default="softmax", type=str, help="tanh/softmax")
 
     #parser.add_argument('--buffer_size', default=int(1e5), type=int)
@@ -216,5 +220,12 @@ if __name__ == '__main__':
     parser.add_argument("--target_update_freq", type=int, default=200, help="Update frequency of the target network")
     #parser.add_argument("--tau", type=int, default=0.005, help="If use soft update")
 
+    #parser.add_argument("--epsilon", type=float, default=1.0, help="Initial epsilon")
+    #parser.add_argument("--epsilon_min", type=float, default=0.05, help="Minimum epsilon")
+    #parser.add_argument("--epsilon_decay_steps", type=float, default=50000, help="How many steps before the epsilon decays to the minimum")
+
     args = parser.parse_args()
+
+    args.epsilon_decay = (args.epsilon - args.epsilon_min) / args.epsilon_decay_steps
+
     main(args)

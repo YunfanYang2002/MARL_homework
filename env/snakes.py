@@ -298,7 +298,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
         if len(all_action) != self.n_player:
             raise Exception("all action 维度不正确！", len(all_action))
 
-        print(len(all_action));
+        #print(len(all_action));
         
         for i in range(self.n_player):
             
